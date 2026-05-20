@@ -6,11 +6,15 @@ set(CMAKE_CROSSCOMPILING 1)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(PLATFORM_NAME "zephyr")
 
-set(CMAKE_SYSROOT @CMAKE_SYSROOT@)
-
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+# CMAKE_SYSROOT is only set for true cross-compile (libmicroros.mk decides
+# this based on the C compiler path). On native targets, sysroot stays empty
+# so host gcc can resolve <stdint.h>/<string.h> from /usr/include.
+if(NOT "@CMAKE_SYSROOT@" STREQUAL "")
+  set(CMAKE_SYSROOT @CMAKE_SYSROOT@)
+  set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+  set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+endif()
 
 # Makefile flags
 

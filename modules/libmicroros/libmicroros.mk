@@ -49,11 +49,20 @@ configure_colcon_meta: $(COMPONENT_PATH)/colcon.meta $(COMPONENT_PATH)/micro_ros
 
 
 configure_toolchain: $(COMPONENT_PATH)/zephyr_toolchain.cmake.in
+	@# Skip CMAKE_SYSROOT override on native (host gcc) targets. Setting
+	@# sysroot to COMPONENT_PATH breaks host gcc's resolution of
+	@# <stdint.h>/<string.h> from /usr/include. Detect native via the
+	@# absence of a cross-compile prefix in the C compiler path.
+	@if echo "$(X_CC)" | grep -qE 'zephyr-eabi|riscv64|xtensa|nios2'; then \
+		SYSROOT_VALUE="$(subst /,\/,$(COMPONENT_PATH))"; \
+	else \
+		SYSROOT_VALUE=""; \
+	fi; \
 	rm -f $(COMPONENT_PATH)/zephyr_toolchain.cmake; \
 	cat $(COMPONENT_PATH)/zephyr_toolchain.cmake.in | \
 		sed "s/@CMAKE_C_COMPILER@/$(subst /,\/,$(X_CC))/g" | \
 		sed "s/@CMAKE_CXX_COMPILER@/$(subst /,\/,$(X_CXX))/g" | \
-		sed "s/@CMAKE_SYSROOT@/$(subst /,\/,$(COMPONENT_PATH))/g" | \
+		sed "s/@CMAKE_SYSROOT@/$$SYSROOT_VALUE/g" | \
 		sed "s/@CFLAGS@/$(subst /,\/,$(CFLAGS_INTERNAL))/g" | \
 		sed "s/@CXXFLAGS@/$(subst /,\/,$(CXXFLAGS_INTERNAL))/g" \
 		> $(COMPONENT_PATH)/zephyr_toolchain.cmake
@@ -77,7 +86,7 @@ $(COMPONENT_PATH)/micro_ros_src/src:
 	git clone -b ros2 https://github.com/eProsima/Micro-XRCE-DDS-Client src/Micro-XRCE-DDS-Client; \
 	git clone -b jazzy https://github.com/micro-ROS/rcl src/rcl; \
 	git clone -b jazzy https://github.com/ros2/rclc src/rclc; \
-	git clone -b jazzy https://github.com/micro-ROS/rcutils src/rcutils; \
+	git clone -b fix-native-sim https://github.com/sdelcore/rcutils src/rcutils; \
 	git clone -b jazzy https://github.com/micro-ROS/micro_ros_msgs src/micro_ros_msgs; \
 	git clone -b jazzy https://github.com/micro-ROS/rmw-microxrcedds src/rmw-microxrcedds; \
 	git clone -b jazzy https://github.com/micro-ROS/rosidl_typesupport src/rosidl_typesupport; \
