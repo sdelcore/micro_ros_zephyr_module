@@ -13,6 +13,17 @@ CXXFLAGS_INTERNAL := $(X_CXXFLAGS)
 CFLAGS_INTERNAL := -c -I$(ZEPHYR_BASE)/include/posix -I$(PROJECT_BINARY_DIR)/include/generated $(CFLAGS_INTERNAL)
 CXXFLAGS_INTERNAL := -c -I$(ZEPHYR_BASE)/include/posix -I$(PROJECT_BINARY_DIR)/include/generated $(CXXFLAGS_INTERNAL)
 
+# Native (POSIX-arch) Zephyr targets compile against the host glibc, which
+# triggers a whole class of warnings/errors that don't apply to MCU cross-
+# compiles. Add -D_GNU_SOURCE so files that reference glibc extensions
+# (program_invocation_name, etc.) compile, and -Wno-error so warnings about
+# host-libc semantics (memchr bound, builtin-decl-mismatch) don't fail the
+# build. Cross-compile targets keep upstream's stricter policy.
+ifeq (,$(findstring zephyr-eabi,$(X_CC))$(findstring riscv,$(X_CC))$(findstring xtensa,$(X_CC))$(findstring nios,$(X_CC)))
+CFLAGS_INTERNAL := $(CFLAGS_INTERNAL) -D_GNU_SOURCE -Wno-error
+CXXFLAGS_INTERNAL := $(CXXFLAGS_INTERNAL) -D_GNU_SOURCE -Wno-error
+endif
+
 all: $(COMPONENT_PATH)/libmicroros.a
 
 clean:
