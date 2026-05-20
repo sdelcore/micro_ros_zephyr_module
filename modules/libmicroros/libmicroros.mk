@@ -20,8 +20,10 @@ CXXFLAGS_INTERNAL := -c -I$(ZEPHYR_BASE)/include/posix -I$(PROJECT_BINARY_DIR)/i
 # host-libc semantics (memchr bound, builtin-decl-mismatch) don't fail the
 # build. Cross-compile targets keep upstream's stricter policy.
 ifeq (,$(findstring zephyr-eabi,$(X_CC))$(findstring riscv,$(X_CC))$(findstring xtensa,$(X_CC))$(findstring nios,$(X_CC)))
-CFLAGS_INTERNAL := $(CFLAGS_INTERNAL) -D_GNU_SOURCE -Wno-error -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion
-CXXFLAGS_INTERNAL := $(CXXFLAGS_INTERNAL) -D_GNU_SOURCE -Wno-error
+# -U__STDC_WANT_LIB_EXT1__ stops picolibc headers from referencing Annex K
+# typedefs (__errno_t, __rsize_t) that aren't defined in the native build.
+CFLAGS_INTERNAL := $(CFLAGS_INTERNAL) -D_GNU_SOURCE -U__STDC_WANT_LIB_EXT1__ -Wno-error -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion
+CXXFLAGS_INTERNAL := $(CXXFLAGS_INTERNAL) -D_GNU_SOURCE -U__STDC_WANT_LIB_EXT1__ -Wno-error
 endif
 
 all: $(COMPONENT_PATH)/libmicroros.a
