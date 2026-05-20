@@ -19,7 +19,6 @@
 
 #if ZEPHYR_VERSION_CODE >= ZEPHYR_VERSION(3, 1, 0)
 #include <zephyr/posix/unistd.h>
-#include <zephyr/posix/sys/types.h>
 #include <zephyr/posix/sys/socket.h>
 #include <zephyr/posix/poll.h>
 #else
