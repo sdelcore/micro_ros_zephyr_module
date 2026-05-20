@@ -22,8 +22,11 @@ CXXFLAGS_INTERNAL := -c -I$(ZEPHYR_BASE)/include/posix -I$(PROJECT_BINARY_DIR)/i
 ifeq (,$(findstring zephyr-eabi,$(X_CC))$(findstring riscv,$(X_CC))$(findstring xtensa,$(X_CC))$(findstring nios,$(X_CC)))
 # -U__STDC_WANT_LIB_EXT1__ stops picolibc headers from referencing Annex K
 # typedefs (__errno_t, __rsize_t) that aren't defined in the native build.
-CFLAGS_INTERNAL := $(CFLAGS_INTERNAL) -D_GNU_SOURCE -U__STDC_WANT_LIB_EXT1__ -Wno-error -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion
-CXXFLAGS_INTERNAL := $(CXXFLAGS_INTERNAL) -D_GNU_SOURCE -U__STDC_WANT_LIB_EXT1__ -Wno-error
+# -fno-function-sections keeps gcc's PIC helper thunks (e.g. __x86.get_pc_thunk.bx
+# emitted on i686) in the same .text section as their callers, so
+# native_sim's link-time --gc-sections doesn't drop them.
+CFLAGS_INTERNAL := $(CFLAGS_INTERNAL) -D_GNU_SOURCE -U__STDC_WANT_LIB_EXT1__ -fno-function-sections -fno-data-sections -Wno-error -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion
+CXXFLAGS_INTERNAL := $(CXXFLAGS_INTERNAL) -D_GNU_SOURCE -U__STDC_WANT_LIB_EXT1__ -fno-function-sections -fno-data-sections -Wno-error
 endif
 
 all: $(COMPONENT_PATH)/libmicroros.a
